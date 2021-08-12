@@ -1,0 +1,20 @@
+{
+    "name": "iu-vpcm-dc/wcms-webservice",
+    "description": "WCMS webservice lib",
+    "type": "library",
+    "license": "GPL",
+    "authors": [
+        {
+            "name": "Qiwen Zhu",
+            "email": "qiwzhu@iu.edu"
+        }
+    ],
+    "autolaod": {
+        "psr-4": {
+            "Edu\\Iu\\Vpcm\\Dc\\Wcms\\WebService\\": "src"
+        }
+    },
+    "require": {
+        "php": ">=7.0"
+    }
+}

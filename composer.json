@@ -9,9 +9,9 @@
             "email": "qiwzhu@iu.edu"
         }
     ],
-    "autolaod": {
+    "autoload": {
         "psr-4": {
-            "Edu\\Iu\\Vpcm\\Dc\\Wcms\\WebService\\": "src"
+            "Edu\\Iu\\Vpcm\\Dc\\Wcms\\WebService\\": "src/"
         }
     },
     "minimum-stability": "dev",

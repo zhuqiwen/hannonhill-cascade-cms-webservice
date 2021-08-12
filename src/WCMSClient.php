@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace Edu\Iu\Vpcm\DC\WebService;
+namespace Edu\Iu\Vpcm\DC\Wcms\WebService;
 
 class WCMSClient
 {

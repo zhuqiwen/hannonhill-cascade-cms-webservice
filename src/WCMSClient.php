@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace Edu\Iu\Framework\PluginManager\WebService;
+namespace Edu\Iu\Vpcm\DC\WebService;
 
 class WCMSClient
 {

@@ -50,7 +50,7 @@ class WCMSClient
         return $this->site_name;
     }
 
-    public function createAsset(string $type, \stdClass $asset): stdClass
+    public function createAsset(string $type, \stdClass $asset): \stdClass
     {
         $asset->siteName = $this->site_name;
 

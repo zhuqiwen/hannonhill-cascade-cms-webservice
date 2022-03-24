@@ -45,9 +45,14 @@ class WCMSClient
         $this->client = new \SoapClient($wsdl_url, ['trace' => 1]);
     }
 
-    public function getSiteName(): string
+    public function getSiteName(): \string
     {
         return $this->site_name;
+    }
+
+    public function setSiteName(string $siteName)
+    {
+        $this->site_name = $siteName;
     }
 
     public function createAsset(string $type, \stdClass $asset): \stdClass

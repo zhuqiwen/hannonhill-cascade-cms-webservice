@@ -13,11 +13,12 @@ class WCMSClient
 
     public function __construct(
         string $wsdl_url,
-        string $site_name
+        string $site_name,
+        array $soapRequestOptions = null
     ) {
         $this->site_name = $site_name;
         $this->authentication = [];
-        $this->createWebServicesClient($wsdl_url);
+        $this->createWebServicesClient($wsdl_url, $soapRequestOptions);
     }
 
 
@@ -40,9 +41,12 @@ class WCMSClient
         return $this;
     }
 
-    private function createWebServicesClient($wsdl_url): void
+    private function createWebServicesClient($wsdl_url, array $options = null): void
     {
-        $this->client = new \SoapClient($wsdl_url, ['trace' => 1]);
+        if(is_null($options)){
+            $options = ['trace' => 1];
+        }
+        $this->client = new \SoapClient($wsdl_url, $options);
     }
 
     public function getSiteName(): string

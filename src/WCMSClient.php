@@ -15,7 +15,7 @@ class WCMSClient
         string $wsdl_url,
         string $site_name
     ) {
-        $this->site_name = $site_name;
+        $this->site_name = trim($site_name);
         $this->authentication = [];
         $this->createWebServicesClient($wsdl_url);
     }
@@ -24,7 +24,7 @@ class WCMSClient
     public function setAuthByKey(string $api_key): self
     {
         $this->authentication = [
-            'apiKey' => $api_key
+            'apiKey' => trim($api_key)
         ];
 
         return $this;

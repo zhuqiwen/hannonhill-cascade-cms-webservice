@@ -22,6 +22,11 @@ class WCMSClient
     }
 
 
+    public function getClient()
+    {
+        return $this->client;
+    }
+
     public function setAuthByKey(string $api_key): self
     {
         $this->authentication = [

@@ -9,6 +9,7 @@ class WCMSClient
     private $client;
     private $authentication;
     private $site_name;
+    private $wsdl;
 
 
     public function __construct(
@@ -19,12 +20,18 @@ class WCMSClient
         $this->site_name = trim($site_name);
         $this->authentication = [];
         $this->createWebServicesClient($wsdl_url, $soapRequestOptions);
+        $this->wsdl = $wsdl_url;
     }
 
 
     public function getClient()
     {
         return $this->client;
+    }
+
+    public function getWSDL()
+    {
+        return
     }
 
     public function setAuthByKey(string $api_key): self

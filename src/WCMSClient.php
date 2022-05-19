@@ -31,7 +31,7 @@ class WCMSClient
 
     public function getWSDL()
     {
-        return
+        return $this->wsdl;
     }
 
     public function setAuthByKey(string $api_key): self

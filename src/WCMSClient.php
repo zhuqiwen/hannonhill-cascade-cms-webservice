@@ -53,7 +53,7 @@ class WCMSClient
         return $this;
     }
 
-    private function createWebServicesClient($wsdl_url, array $options = null): void
+    private function createWebServicesClient($wsdl_url, array | null $options = null): void
     {
         if(is_null($options)){
             $options = ['trace' => 1];

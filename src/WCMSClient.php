@@ -15,7 +15,7 @@ class WCMSClient
     public function __construct(
         string $wsdl_url,
         string $site_name,
-        array $soapRequestOptions = null
+        array | null $soapRequestOptions = null
     ) {
         $this->site_name = trim($site_name);
         $this->authentication = [];

@@ -6,10 +6,10 @@ namespace Edu\IU\Wcms\WebService;
 
 class WCMSClient
 {
-    private $client;
-    private $authentication;
-    private $site_name;
-    private $wsdl;
+    protected \SoapClient $client;
+    protected array $authentication;
+    protected string $site_name;
+    protected string $wsdl;
 
 
     public function __construct(

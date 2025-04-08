@@ -155,7 +155,7 @@ class WCMSClient
             ]
         ];
         $targetContainerIdentifier = [
-            'type' => str_contains($sourceAssetType, 'container') ? $sourceAssetType : $sourceAssetType . 'container',
+            'type' => $this->constructContainerType($sourceAssetType),
             'path' => [
                 'path' => $toContainerPath,
                 'siteName' => empty($toSiteName) ? $this->site_name : $toSiteName
@@ -420,6 +420,44 @@ class WCMSClient
         }
 
 
+    }
+
+    private function constructContainerType(string $type): string{
+        $folderedTypes = [
+            'page',
+            'file',
+            'folder',
+            'format',
+            'symlink',
+            'template',
+            'block',
+        ];
+        $containeredTypes = [
+            'metadataset',
+            'pageconfigurationset',
+            'datadefinition',
+            'sharedfield',
+            'contenttype',
+            'assetfactory',
+        ];
+        $containers = [
+            'metadatasetcontainer',
+            'pageconfigurationsetcontainer',
+            'datadefinitioncontainer',
+            'sharedfieldcontainer',
+            'contenttypecontainer',
+            'assetfactorycontainer',
+        ];
+
+        if (in_array($type, $folderedTypes)) {
+            return 'folder';
+        }elseif (in_array($type, $containeredTypes)) {
+            return $type.'container';
+        }elseif (in_array($type, $containers)) {
+            return $type;
+        }else{
+            throw new \RuntimeException("$type's container type is not supported yet.");
+        }
     }
 
 }

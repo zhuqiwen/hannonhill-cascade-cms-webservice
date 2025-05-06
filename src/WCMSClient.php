@@ -501,9 +501,72 @@ class WCMSClient
         }
     }
 
-    public function saveAccess():\stdClass
+    public function saveAccess(array $identifier, array $aclEntries, string $allLevel, bool $applyToChildren = false):void
+    {
+        // check necessary entries: identifier and allLevel are required, where aclEntries is optional
+        $this->validateIdentifier($identifier);
+        $this->validateAllLevel($allLevel);
+        $this->validateAclEntries($aclEntries);
+
+        $options = [
+            'authentication' => $this->authentication,
+            'accessRightsInformation' => [
+                'identifier' => $identifier,
+                'aclEntries' => [
+                    'aclEntry' => $aclEntries
+                ],
+                'allLevel' => $allLevel,
+            ],
+            'applyToChildren' => $applyToChildren
+        ];
+
+        $result = $this->client->editAccessRights($options);
+
+        if ($result->editAccessRightsReturn->success != 'true') {
+            throw new \RuntimeException($result->editAccessRightsReturn->message);
+        }
+
+    }
+
+
+    private function validateIdentifier(array $identifier):void
+    {
+        if (!isset($identifier['type'])) {
+            throw new \RuntimeException("identifier type is not set.");
+        }else{
+            //TODO: manually parse WSDL for available string values of entityTypeString
+
+        }
+    }
+
+    private function validateAllLevel(string $allLevel):void
     {
 
+        if (!in_array($allLevel, ['none', 'read', 'write'])){
+            $msg = "allLevel value not supported. It must be one of 'none', 'read', or 'write'. ";
+            $msg .= $allLevel . ' is provided.';
+            throw new \RuntimeException($msg);
+        }
+
+
+    }
+
+    private function validateAclEntries(array $aclEntries):void
+    {
+        foreach ($aclEntries as $entry) {
+            if (!in_array($entry['level'], ['write', 'read'])){
+                $msg = "aclEntry level value not supported. It must be one of 'write', 'read'. " . $entry['level'] . ' is provided.';
+                throw new \RuntimeException($msg);
+            }
+
+            if (!in_array($entry['type'], ['user', 'group'])){
+                $msg = "aclEntry type value not supported. It must be one of 'user', 'group'. " . $entry['type'] . ' is provided.';
+                throw new \RuntimeException($msg);
+            }
+
+            //TODO: check $entry['name']
+
+        }
     }
 
 }

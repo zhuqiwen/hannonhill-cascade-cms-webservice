@@ -460,4 +460,50 @@ class WCMSClient
         }
     }
 
+    /**
+     *
+     * construct identifier array
+     * @param string $path
+     * @param string $type
+     * @param string $siteName
+     * @return array
+     */
+    private function constructIdentifier(string $path, string $type, string $siteName = ''): array
+    {
+        return  [
+            'type' => $type,
+            'path' => [
+                'path' => $path,
+                'siteName' => $siteName === '' ? $this->site_name : $siteName
+            ]
+        ];
+    }
+
+
+
+    /**
+     * ACCESS operations
+     */
+
+    public function readAccess(string $path, string $type):\stdClass
+    {
+        $options = [
+            'authentication' => $this->authentication,
+            'identifier' => $this->constructIdentifier($path, $type)
+        ];
+
+        $result = $this->client->readAccessRights($options);
+
+        if ($result->readAccessRightsReturn->success === 'true') {
+            return $result->readAccessRightsReturn->accessRightsInformation;
+        } else {
+            throw new \RuntimeException($result->readAccessRightsReturn->message);
+        }
+    }
+
+    public function saveAccess():\stdClass
+    {
+
+    }
+
 }

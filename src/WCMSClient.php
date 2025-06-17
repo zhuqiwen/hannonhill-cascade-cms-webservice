@@ -439,6 +439,7 @@ class WCMSClient
             'sharedfield',
             'contenttype',
             'assetfactory',
+            'transport'
         ];
         $containers = [
             'metadatasetcontainer',
@@ -447,6 +448,7 @@ class WCMSClient
             'sharedfieldcontainer',
             'contenttypecontainer',
             'assetfactorycontainer',
+            'transportcontainer',
         ];
 
         if (in_array($type, $folderedTypes)) {

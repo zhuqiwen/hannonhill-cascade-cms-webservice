@@ -134,6 +134,24 @@ class WCMSClient
     }
 
 
+    public function fetchAssetWithId(string $assetId, string $type):\stdClass
+    {
+        $options = [
+            'authentication' => $this->authentication,
+            'identifier' => $this->constructIdentifierWithId($assetId, $type)
+        ];
+
+        $result = $this->client->read($options);
+
+        if ($result->readReturn->success === 'true') {
+            return $result->readReturn->asset;
+        } else {
+            throw new \RuntimeException($result->readReturn->message);
+        }
+    }
+
+
+
     /**
      * @param string $fromPath source asset path
      * @param string $toContainerPath target container path
@@ -478,6 +496,14 @@ class WCMSClient
                 'path' => $path,
                 'siteName' => $siteName === '' ? $this->site_name : $siteName
             ]
+        ];
+    }
+
+    private function constructIdentifierWithId(string $id, string $type): array
+    {
+        return  [
+            'type' => $type,
+            'id' => $id,
         ];
     }
 

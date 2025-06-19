@@ -199,6 +199,43 @@ class WCMSClient
         }
     }
 
+
+
+    public function copyAssetById(string $sourceId, string $toContainerPath, string $sourceAssetType, string $toSiteName = '', string $newAssetName = '', bool $doWorkflow = false): void
+    {
+        $oldAssetName = explode('/', $fromPath);
+        $oldAssetName = end($oldAssetName);
+        $sourceIdentifier = [
+            'type' => $sourceAssetType,
+            'id' => $sourceIdentifier
+        ];
+        $targetContainerIdentifier = [
+            'type' => $this->constructContainerType($sourceAssetType),
+            'path' => [
+                'path' => $toContainerPath,
+                'siteName' => empty($toSiteName) ? $this->site_name : $toSiteName
+            ]
+        ];
+
+        $copyParameters = [
+            'destinationContainerIdentifier' => $targetContainerIdentifier,
+            'doWorkflow' => $doWorkflow,
+            'newName' => empty($newAssetName) ? $oldAssetName : $newAssetName
+        ];
+
+        $copy_options = [
+            'authentication' => $this->authentication,
+            'identifier' => $sourceIdentifier,
+            'copyParameters' => $copyParameters
+        ];
+
+        $result = $this->client->copy($copy_options);
+
+        if ($result->copyReturn->success !== 'true') {
+            throw new \RuntimeException($result->copyReturn->message);
+        }
+    }
+
     public function saveAsset(\stdClass $asset, string $type): void
     {
         $asset->siteName = $this->site_name;

@@ -203,8 +203,6 @@ class WCMSClient
 
     public function copyAssetById(string $sourceId, string $toContainerPath, string $sourceAssetType, string $toSiteName = '', string $newAssetName = '', bool $doWorkflow = false): void
     {
-        $oldAssetName = explode('/', $fromPath);
-        $oldAssetName = end($oldAssetName);
         $sourceIdentifier = [
             'type' => $sourceAssetType,
             'id' => $sourceIdentifier

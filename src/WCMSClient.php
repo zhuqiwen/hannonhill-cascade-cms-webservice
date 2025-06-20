@@ -517,6 +517,49 @@ class WCMSClient
 
     }
 
+
+    //TODO: add unpublish()
+
+    public function publishByDestinationPath(string $destinationPath, string $siteName = "")
+    {
+
+        $publishInfo = [
+            'identifier' => $this->constructIdentifier($destinationPath, 'destination', $siteName),
+            'unpublish' => false
+
+        ];
+        $publish_options = [
+            'authentication' => $this->authentication,
+            'publishInformation' => $publishInfo
+        ];
+
+        $result = $this->client->publish($publish_options);
+
+        if ($result->publishReturn->success != 'true') {
+            throw new \RuntimeException($result->publishReturn->message);
+        }
+
+    }
+
+    public function publishByDestinationId(string $destinationId)
+    {
+        $publishInfo = [
+            'identifier' => $this->constructIdentifierWithId($destinationId, 'destination'),
+            'unpublish' => false
+        ];
+        $publish_options = [
+            'authentication' => $this->authentication,
+            'publishInformation' => $publishInfo
+        ];
+
+        $result = $this->client->publish($publish_options);
+
+        if ($result->publishReturn->success != 'true') {
+            throw new \RuntimeException($result->publishReturn->message);
+        }
+
+    }
+
     private function constructContainerType(string $type): string{
         if ($type == 'transport_ftp'){
             $type = 'transport';

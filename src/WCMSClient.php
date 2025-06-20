@@ -234,6 +234,48 @@ class WCMSClient
         }
     }
 
+    // rename only happens in same site
+    public function renameAsset(string $path, string $type, string $newName, bool $doWorkflow = false): void
+    {
+        $moveParameters = [
+            'doWorkflow' => $doWorkflow,
+            'newName' => $newName,
+        ];
+
+        $move_options = [
+            'authentication' => $this->authentication,
+            'identifier' => $this->constructIdentifier($path, $type),
+            'moveParameters' => $moveParameters,
+        ];
+
+        $resul = $this->client->move($move_options);
+        if ($resul->moveReturn->success !== 'true') {
+            throw new \RuntimeException($resul->moveReturn->message);
+        }
+        
+    }
+
+    // rename only happens in same site
+    public function renameAssetById(string $id, string $type, string $newName, bool $doWorkflow = false): void
+    {
+        $moveParameters = [
+            'doWorkflow' => $doWorkflow,
+            'newName' => $newName,
+        ];
+
+        $move_options = [
+            'authentication' => $this->authentication,
+            'identifier' => $this->constructIdentifierWithId($id, $type),
+            'moveParameters' => $moveParameters,
+        ];
+
+        $resul = $this->client->move($move_options);
+        if ($resul->moveReturn->success !== 'true') {
+            throw new \RuntimeException($resul->moveReturn->message);
+        }
+
+    }
+
     public function saveAsset(\stdClass $asset, string $type): void
     {
         $asset->siteName = $this->site_name;

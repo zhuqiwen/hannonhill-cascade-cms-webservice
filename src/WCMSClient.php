@@ -476,6 +476,9 @@ class WCMSClient
     }
 
     private function constructContainerType(string $type): string{
+        if ($type == 'transport_ftp'){
+            $type = 'transport';
+        }
         $folderedTypes = [
             'page',
             'file',

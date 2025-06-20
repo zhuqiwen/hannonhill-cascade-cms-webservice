@@ -205,7 +205,7 @@ class WCMSClient
     {
         $sourceIdentifier = [
             'type' => $sourceAssetType,
-            'id' => $sourceIdentifier
+            'id' => $sourceId
         ];
         $targetContainerIdentifier = [
             'type' => $this->constructContainerType($sourceAssetType),

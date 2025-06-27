@@ -520,6 +520,88 @@ class WCMSClient
 
     //TODO: add unpublish()
 
+
+    public function publishAssetById(string $id, string $type, array $destinations = []):void
+    {
+        $publishInfo = [
+            'identifier' => $this->constructIdentifierWithId($id, $type),
+            'unpublish' => false,
+            'destinations' => $destinations
+        ];
+        $publish_options = [
+            'authentication' => $this->authentication,
+            'publishInformation' => $publishInfo
+        ];
+
+        $result = $this->client->publish($publish_options);
+
+        if ($result->publishReturn->success != 'true') {
+            throw new \RuntimeException($result->publishReturn->message);
+        }
+    }
+
+    public function publishAsset(string $path, string $type, array $destinations = []):void
+    {
+        $publishInfo = [
+            'identifier' => $this->constructIdentifier($path, $type),
+            'unpublish' => false,
+            'destinations' => $destinations
+        ];
+        $publish_options = [
+            'authentication' => $this->authentication,
+            'publishInformation' => $publishInfo
+        ];
+
+        $result = $this->client->publish($publish_options);
+
+        if ($result->publishReturn->success != 'true') {
+            throw new \RuntimeException($result->publishReturn->message);
+        }
+    }
+
+
+    public function unpublishAssetById(string $id, string $type, array $destinations = []):void
+    {
+        $publishInfo = [
+            'identifier' => $this->constructIdentifierWithId($id, $type),
+            'unpublish' => true,
+            'destinations' => $destinations
+        ];
+        $publish_options = [
+            'authentication' => $this->authentication,
+            'publishInformation' => $publishInfo
+        ];
+
+        $result = $this->client->publish($publish_options);
+
+        if ($result->publishReturn->success != 'true') {
+            throw new \RuntimeException($result->publishReturn->message);
+        }
+    }
+
+    public function unpublishAsset(string $path, string $type, array $destinations = []):void
+    {
+        $publishInfo = [
+            'identifier' => $this->constructIdentifier($path, $type),
+            'unpublish' => true,
+            'destinations' => $destinations
+        ];
+        $publish_options = [
+            'authentication' => $this->authentication,
+            'publishInformation' => $publishInfo
+        ];
+
+        $result = $this->client->publish($publish_options);
+
+        if ($result->publishReturn->success != 'true') {
+            throw new \RuntimeException($result->publishReturn->message);
+        }
+    }
+
+
+
+
+
     public function publishByDestinationPath(string $destinationPath, string $siteName = "")
     {
 

@@ -652,6 +652,49 @@ class WCMSClient
         }
     }
 
+    public function readAccessById(string $id, string $type):\stdClass
+    {
+        $options = [
+            'authentication' => $this->authentication,
+            'identifier' => $this->constructIdentifierWithId($id, $type)
+        ];
+
+        $result = $this->client->readAccessRights($options);
+
+        if ($result->readAccessRightsReturn->success === 'true') {
+            return $result->readAccessRightsReturn->accessRightsInformation;
+        } else {
+            throw new \RuntimeException($result->readAccessRightsReturn->message);
+        }
+    }
+
+
+    public function saveAccessById(string $id, string $type, array $aclEntries, string $allLevel, bool $applyToChildren = false):void
+    {
+        // check necessary entries: identifier and allLevel are required, where aclEntries is optional
+        $this->validateIdentifier($this->constructIdentifierWithId($id, $type));
+        $this->validateAllLevel($allLevel);
+        $this->validateAclEntries($aclEntries);
+
+        $options = [
+            'authentication' => $this->authentication,
+            'accessRightsInformation' => [
+                'identifier' => $this->constructIdentifierWithId($id, $type),
+                'aclEntries' => [
+                    'aclEntry' => $aclEntries
+                ],
+                'allLevel' => $allLevel,
+            ],
+            'applyToChildren' => $applyToChildren
+        ];
+
+        $result = $this->client->editAccessRights($options);
+
+        if ($result->editAccessRightsReturn->success != 'true') {
+            throw new \RuntimeException($result->editAccessRightsReturn->message);
+        }
+
+    }
     public function saveAccess(array $identifier, array $aclEntries, string $allLevel, bool $applyToChildren = false):void
     {
         // check necessary entries: identifier and allLevel are required, where aclEntries is optional
@@ -705,13 +748,17 @@ class WCMSClient
     private function validateAclEntries(array $aclEntries):void
     {
         foreach ($aclEntries as $entry) {
-            if (!in_array($entry['level'], ['write', 'read'])){
-                $msg = "aclEntry level value not supported. It must be one of 'write', 'read'. " . $entry['level'] . ' is provided.';
+            if (!$entry instanceof \stdClass){
+                $msg = "Each entry of aclEntries must be \stdClass object.";
+                throw new \RuntimeException($msg);
+            }
+            if (!in_array($entry->level, ['write', 'read'])){
+                $msg = "aclEntry level value not supported. It must be one of 'write', 'read'. " . $entry->level . ' is provided.';
                 throw new \RuntimeException($msg);
             }
 
-            if (!in_array($entry['type'], ['user', 'group'])){
-                $msg = "aclEntry type value not supported. It must be one of 'user', 'group'. " . $entry['type'] . ' is provided.';
+            if (!in_array($entry->type, ['user', 'group'])){
+                $msg = "aclEntry type value not supported. It must be one of 'user', 'group'. " . $entry->type . ' is provided.';
                 throw new \RuntimeException($msg);
             }
 

@@ -276,6 +276,46 @@ class WCMSClient
 
     }
 
+    public function moveAsset(string $path, string $type, string $newParentPath, bool $doWorkflow = false):void
+    {
+
+        $moveParameters = [
+            'doWorkflow' => $doWorkflow,
+            'destinationContainerIdentifier' => $this->constructIdentifier($newParentPath, $this->getContainerType($type)),
+        ];
+
+        $move_options = [
+            'authentication' => $this->authentication,
+            'identifier' => $this->constructIdentifier($path, $type),
+            'moveParameters' => $moveParameters,
+        ];
+
+        $resul = $this->client->move($move_options);
+        if ($resul->moveReturn->success !== 'true') {
+            throw new \RuntimeException($resul->moveReturn->message);
+        }
+    }
+
+    public function moveAssetById(string $id, string $type, string $newParentPath, bool $doWorkflow = false): void
+    {
+
+        $moveParameters = [
+            'doWorkflow' => $doWorkflow,
+            'destinationContainerIdentifier' => $this->constructIdentifier($newParentPath, $this->getContainerType($type)),
+        ];
+
+        $move_options = [
+            'authentication' => $this->authentication,
+            'identifier' => $this->constructIdentifierWithId($id, $type),
+            'moveParameters' => $moveParameters,
+        ];
+
+        $resul = $this->client->move($move_options);
+        if ($resul->moveReturn->success !== 'true') {
+            throw new \RuntimeException($resul->moveReturn->message);
+        }
+    }
+
     public function saveAsset(\stdClass $asset, string $type): void
     {
         $asset->siteName = $this->site_name;
@@ -712,6 +752,15 @@ class WCMSClient
         ];
     }
 
+
+    private function getContainerType(string $childType): string
+    {
+        return match ($childType){
+            'page', 'folder', 'file', 'symlink', 'format', 'block', 'template' => 'folder',
+            default => $childType . 'container',
+        };
+
+    }
 
 
     /**

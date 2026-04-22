@@ -755,8 +755,9 @@ class WCMSClient
 
     private function getContainerType(string $childType): string
     {
-        return match ($childType){
-            'page', 'folder', 'file', 'symlink', 'format', 'block', 'template' => 'folder',
+        return match (true){
+            in_array($childType, ['page', 'folder', 'file', 'symlink', 'format', 'block', 'template']) => 'folder',
+            str_ends_with($childType, 'container') => $childType,
             default => $childType . 'container',
         };
 

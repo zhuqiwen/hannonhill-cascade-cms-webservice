@@ -639,6 +639,49 @@ class WCMSClient
     }
 
 
+    public function addComment(string $comment, string $path, string $type)
+    {
+        $checkOutOptions = [
+            'authentication' => $this->authentication,
+            'identifier' => $this->constructIdentifier($path, $type),
+        ];
+        $result = $this->client->checkOut($checkOutOptions);
+        if ($result->checkOutReturn->success != 'true') {
+            throw new \RuntimeException($result->checkOutReturn->message);
+        }
+
+        $checkInOptions = [
+            'authentication' => $this->authentication,
+            'identifier' => $this->constructIdentifier($path, $type),
+            'comments' => $comment,
+        ];
+        $result = $this->client->checkIn($checkInOptions);
+        if ($result->checkInReturn->success != 'true') {
+            throw new \RuntimeException($result->checkInReturn->message);
+        }
+    }
+
+    public function addCommentById(string $comment, string $id, string $type):void
+    {
+        $checkOutOptions = [
+            'authentication' => $this->authentication,
+            'identifier' => $this->constructIdentifierWithId($id, $type),
+        ];
+        $result = $this->client->checkOut($checkOutOptions);
+        if ($result->checkOutReturn->success != 'true') {
+            throw new \RuntimeException($result->checkOutReturn->message);
+        }
+
+        $checkInOptions = [
+            'authentication' => $this->authentication,
+            'identifier' => $this->constructIdentifierWithId($id, $type),
+            'comments' => $comment,
+        ];
+        $result = $this->client->checkIn($checkInOptions);
+        if ($result->checkInReturn->success != 'true') {
+            throw new \RuntimeException($result->checkInReturn->message);
+        }
+    }
 
 
 

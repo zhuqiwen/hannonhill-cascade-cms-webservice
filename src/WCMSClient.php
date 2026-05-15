@@ -11,7 +11,15 @@ class WCMSClient
     protected string $site_name;
     protected string $wsdl;
 
+    protected Batch $batch;
+    protected Access $access;
 
+    use WCMSClientTraits;
+
+
+    /**
+     * @throws \SoapFault
+     */
     public function __construct(
         string $wsdl_url,
         string $site_name,
@@ -21,15 +29,20 @@ class WCMSClient
         $this->authentication = [];
         $this->createWebServicesClient($wsdl_url, $soapRequestOptions);
         $this->wsdl = $wsdl_url;
+
+        $this->batch = new Batch($this->client, $this->authentication, $this->site_name);
+        $this->access = new Access($this->client, $this->authentication, $this->site_name);
+
+
     }
 
 
-    public function getClient()
+    public function getClient(): \SoapClient
     {
         return $this->client;
     }
 
-    public function getWSDL()
+    public function getWSDL(): string
     {
         return $this->wsdl;
     }
@@ -53,6 +66,9 @@ class WCMSClient
         return $this;
     }
 
+    /**
+     * @throws \SoapFault
+     */
     private function createWebServicesClient($wsdl_url, array | null $options = null): void
     {
         if(is_null($options)){
@@ -66,7 +82,7 @@ class WCMSClient
         return $this->site_name;
     }
 
-    public function setSiteName(string $siteName)
+    public function setSiteName(string $siteName): void
     {
         $this->site_name = $siteName;
     }
@@ -89,7 +105,7 @@ class WCMSClient
         return $result;
     }
 
-    public function assetExists(string $path, string $type)
+    public function assetExists(string $path, string $type): ?bool
     {
         try {
             $asset = $this->fetchAsset($path, $type);
@@ -111,17 +127,9 @@ class WCMSClient
 
     public function fetchAsset(string $path, string $type): \stdClass
     {
-        $identifier = [
-            'type' => $type,
-            'path' => [
-                'path' => $path,
-                'siteName' => $this->site_name
-            ]
-        ];
-
         $read_options = [
             'authentication' => $this->authentication,
-            'identifier' => $identifier
+            'identifier' => $this->constructIdentifier($path, $type)
         ];
 
         $result = $this->client->read($read_options);
@@ -165,20 +173,14 @@ class WCMSClient
     {
         $oldAssetName = explode('/', $fromPath);
         $oldAssetName = end($oldAssetName);
-        $sourceIdentifier = [
-            'type' => $sourceAssetType,
-            'path' => [
-                'path' => $fromPath,
-                'siteName' => $this->site_name
-            ]
-        ];
-        $targetContainerIdentifier = [
-            'type' => $this->constructContainerType($sourceAssetType),
-            'path' => [
-                'path' => $toContainerPath,
-                'siteName' => empty($toSiteName) ? $this->site_name : $toSiteName
-            ]
-        ];
+
+        $sourceIdentifier = $this->constructIdentifier($fromPath, $sourceAssetType);
+
+        $targetContainerIdentifier = $this->constructIdentifier(
+            $toContainerPath,
+            $this->constructContainerType($sourceAssetType),
+            empty($toSiteName) ? $this->site_name : $toSiteName
+        );
 
         $copyParameters = [
             'destinationContainerIdentifier' => $targetContainerIdentifier,
@@ -203,17 +205,14 @@ class WCMSClient
 
     public function copyAssetById(string $sourceId, string $toContainerPath, string $sourceAssetType, string $toSiteName = '', string $newAssetName = '', bool $doWorkflow = false): void
     {
-        $sourceIdentifier = [
-            'type' => $sourceAssetType,
-            'id' => $sourceId
-        ];
-        $targetContainerIdentifier = [
-            'type' => $this->constructContainerType($sourceAssetType),
-            'path' => [
-                'path' => $toContainerPath,
-                'siteName' => empty($toSiteName) ? $this->site_name : $toSiteName
-            ]
-        ];
+
+        $sourceIdentifier = $this->constructIdentifierWithId($sourceId, $sourceAssetType);
+
+        $targetContainerIdentifier = $this->constructIdentifier(
+            $toContainerPath,
+            $this->constructContainerType($sourceAssetType),
+            empty($toSiteName) ? $this->site_name : $toSiteName
+        );
 
         $copyParameters = [
             'destinationContainerIdentifier' => $targetContainerIdentifier,
@@ -279,10 +278,7 @@ class WCMSClient
     public function moveAsset(string $path, string $type, string $newParentPath, bool $doWorkflow = false):void
     {
 
-        $moveParameters = [
-            'doWorkflow' => $doWorkflow,
-            'destinationContainerIdentifier' => $this->constructIdentifier($newParentPath, $this->getContainerType($type)),
-        ];
+        $moveParameters = $this->constructMoveParameters($newParentPath, $type, $doWorkflow);
 
         $move_options = [
             'authentication' => $this->authentication,
@@ -336,13 +332,7 @@ class WCMSClient
     {
         $delete_options = [
             'authentication' => $this->authentication,
-            'identifier' => [
-                'path' => [
-                    'path' => $path,
-                    'siteName' => $this->site_name
-                ],
-                'type' => $type
-            ]
+            'identifier' => $this->constructIdentifier($path, $type),
         ];
 
         $result = $this->client->delete($delete_options);
@@ -356,13 +346,7 @@ class WCMSClient
     {
         $options = [
             'authentication' => $this->authentication,
-            'identifier' => [
-                'path' => [
-                    'path' => $path,
-                    'siteName' => $this->site_name
-                ],
-                'type' => $type
-            ]
+            'identifier' => $this->constructIdentifier($path, $type),
         ];
 
         $result = $this->client->readWorkflowSettings($options);
@@ -415,13 +399,7 @@ class WCMSClient
 
         $options = [
             'authentication' => $this->authentication,
-            'identifier' => (object) [
-                "path" => [
-                    "path" => $path,
-                    "siteName" => $siteName
-                ],
-                "type" => "metadataset"
-            ],
+            'identifier' => $this->constructIdentifier($path, 'metadataset', $siteName)
         ];
 
         $result = $this->client->listSubscribers($options);
@@ -464,13 +442,7 @@ class WCMSClient
 
         $options = [
             'authentication' => $this->authentication,
-            'identifier' => (object) [
-                "path" => [
-                    "path" => $path,
-                    "siteName" => $siteName
-                ],
-                "type" => $type
-            ],
+            'identifier' => $this->constructIdentifier($path, $type, $siteName)
         ];
 
         $result = $this->client->listSubscribers($options);
@@ -504,59 +476,115 @@ class WCMSClient
 
     }
 
-    public function batchRead(array $reads = [])
+    public function relationships(string $path, string $type, string $siteName = ""): array
     {
-        $operations = [];
-        foreach ($reads as $read)
+        if($siteName === "")
         {
-            $operations[] = [
-                'read' => [
-                    'authentication' => $this->authentication,
-                    'identifier' => [
-                        'type' => $read['type'],
-                        'path' => [
-                            'path' => $read['path'],
-                            'siteName' => $this->site_name
-                        ]
-                    ]
-                ],
-            ];
+            $siteName = $this->site_name;
         }
 
         $options = [
             'authentication' => $this->authentication,
-            'operation' => $operations
+            'identifier' => $this->constructIdentifier($path, $type, $siteName)
         ];
 
-        try
-        {
-            $result = $this->client->batch($options);
+        $result = $this->client->relationships($options);
 
+
+        if($result->lrelationshipsReturn->success === 'true')
+        {
             // normalize what to return
             $results = [];
-            if(is_array($result->batchReturn))
+            $subscribers = (array)$result->lrelationshipsReturn->subscribers;
+
+            if(!empty($subscribers))
             {
-                foreach ($result->batchReturn as $item)
+                $subscribers = $subscribers['assetIdentifier'];
+                if(is_array($subscribers))
                 {
-                    $results[] = $item->readResult;
+                    $results = $subscribers;
                 }
-            }
-            else
-            {
-                $results[] = $result->batchReturn->readResult;
+                else
+                {
+                    $results = [$subscribers];
+                }
             }
 
             return $results;
-
         }
-        catch (\Exception $e)
+        else
         {
-            throw new \RuntimeException($e->getMessage());
+            throw new \RuntimeException($result->listSubscribersReturn->message);
         }
-
-
     }
 
+
+    /**
+     * BATCH
+     */
+
+    /**
+     * @param array $reads
+     * @return array
+     */
+    public function batchRead(array $reads = []):array
+    {
+
+        return $this->batch->read($reads);
+    }
+
+    /**
+     * @param array $moves
+     * @return array
+     */
+    public function batchMove(array $moves = []):array
+    {
+        return $this->batch->move($moves);
+    }
+
+    public function batchCreate(array $creates = []):array
+    {
+        return $this->batch->create($creates);
+    }
+
+    public function batchDelete(array $deletes = []):array
+    {
+        return $this->batch->delete($deletes);
+    }
+
+    public function batchEdit(array $edits = []):array
+    {
+        return $this->batch->edit($edits);
+    }
+
+    public function batchPublish(array $publishes = []):array
+    {
+        return $this->batch->publish($publishes);
+    }
+
+    public function batchReadAccess(array $reads = []):array
+    {
+        return $this->batch->readAccessRights($reads);
+    }
+
+    public function batchEditAccessRights(array $edits = []):array
+    {
+        return $this->batch->editAccessRights($edits);
+    }
+
+    public function batchRelationship(array $relationships = []):array
+    {
+        return $this->batch->relationships($relationships);
+    }
+
+    public function batchCopy(array $copies = []):array
+    {
+        return $this->batch->copy($copies);
+    }
+
+    /**
+     * END: BATCH
+     */
 
     //TODO: add unpublish()
 
@@ -725,86 +753,16 @@ class WCMSClient
 
     }
 
-    private function constructContainerType(string $type): string{
-        if ($type == 'transport_ftp'){
-            $type = 'transport';
-        }
-        $folderedTypes = [
-            'page',
-            'file',
-            'folder',
-            'format',
-            'symlink',
-            'template',
-            'block',
-        ];
-        $containeredTypes = [
-            'metadataset',
-            'pageconfigurationset',
-            'datadefinition',
-            'sharedfield',
-            'contenttype',
-            'assetfactory',
-            'transport'
-        ];
-        $containers = [
-            'metadatasetcontainer',
-            'pageconfigurationsetcontainer',
-            'datadefinitioncontainer',
-            'sharedfieldcontainer',
-            'contenttypecontainer',
-            'assetfactorycontainer',
-            'transportcontainer',
-        ];
-
-        if (in_array($type, $folderedTypes)) {
-            return 'folder';
-        }elseif (in_array($type, $containeredTypes)) {
-            return $type.'container';
-        }elseif (in_array($type, $containers)) {
-            return $type;
-        }else{
-            throw new \RuntimeException("$type's container type is not supported yet.");
-        }
-    }
-
-    /**
-     *
-     * construct identifier array
-     * @param string $path
-     * @param string $type
-     * @param string $siteName
-     * @return array
-     */
-    private function constructIdentifier(string $path, string $type, string $siteName = ''): array
-    {
-        return  [
-            'type' => $type,
-            'path' => [
-                'path' => $path,
-                'siteName' => $siteName === '' ? $this->site_name : $siteName
-            ]
-        ];
-    }
-
-    private function constructIdentifierWithId(string $id, string $type): array
-    {
-        return  [
-            'type' => $type,
-            'id' => $id,
-        ];
-    }
 
 
-    private function getContainerType(string $childType): string
-    {
-        return match (true){
-            in_array($childType, ['page', 'folder', 'file', 'symlink', 'format', 'block', 'template']) => 'folder',
-            str_ends_with($childType, 'container') => $childType,
-            default => $childType . 'container',
-        };
 
-    }
+
+
+
+
+
+
+
 
 
     /**
@@ -813,34 +771,12 @@ class WCMSClient
 
     public function readAccess(string $path, string $type):\stdClass
     {
-        $options = [
-            'authentication' => $this->authentication,
-            'identifier' => $this->constructIdentifier($path, $type)
-        ];
-
-        $result = $this->client->readAccessRights($options);
-
-        if ($result->readAccessRightsReturn->success === 'true') {
-            return $result->readAccessRightsReturn->accessRightsInformation;
-        } else {
-            throw new \RuntimeException($result->readAccessRightsReturn->message);
-        }
+        return $this->access->read($path, $type);
     }
 
     public function readAccessById(string $id, string $type):\stdClass
     {
-        $options = [
-            'authentication' => $this->authentication,
-            'identifier' => $this->constructIdentifierWithId($id, $type)
-        ];
-
-        $result = $this->client->readAccessRights($options);
-
-        if ($result->readAccessRightsReturn->success === 'true') {
-            return $result->readAccessRightsReturn->accessRightsInformation;
-        } else {
-            throw new \RuntimeException($result->readAccessRightsReturn->message);
-        }
+        return $this->access->readById($id, $type);
     }
 
 
@@ -860,76 +796,20 @@ class WCMSClient
 
     }
 
-    public function saveAccess(array $identifier, array $aclEntries, string $allLevel, bool $applyToChildren = false):void
+    protected function saveAccess(array $identifier, array $aclEntries, string $allLevel, bool $applyToChildren = false):void
     {
         // check necessary entries: identifier and allLevel are required, where aclEntries is optional
         $this->validateIdentifier($identifier);
         $this->validateAllLevel($allLevel);
         $this->validateAclEntries($aclEntries);
 
-        $options = [
-            'authentication' => $this->authentication,
-            'accessRightsInformation' => [
-                'identifier' => $identifier,
-                'aclEntries' => [
-                    'aclEntry' => $aclEntries
-                ],
-                'allLevel' => $allLevel,
-            ],
-            'applyToChildren' => $applyToChildren
-        ];
-
-        $result = $this->client->editAccessRights($options);
-
-        if ($result->editAccessRightsReturn->success != 'true') {
-            throw new \RuntimeException($result->editAccessRightsReturn->message);
-        }
+        $this->access->saveAccess($identifier, $aclEntries, $allLevel, $applyToChildren);
 
     }
 
 
-    private function validateIdentifier(array $identifier):void
-    {
-        if (!isset($identifier['type'])) {
-            throw new \RuntimeException("identifier type is not set.");
-        }else{
-            //TODO: manually parse WSDL for available string values of entityTypeString
-
-        }
-    }
-
-    private function validateAllLevel(string $allLevel):void
-    {
-
-        if (!in_array($allLevel, ['none', 'read', 'write'])){
-            $msg = "allLevel value not supported. It must be one of 'none', 'read', or 'write'. ";
-            $msg .= $allLevel . ' is provided.';
-            throw new \RuntimeException($msg);
-        }
 
 
-    }
 
-    private function validateAclEntries(array $aclEntries):void
-    {
-        foreach ($aclEntries as $entry) {
-            if (!$entry instanceof \stdClass){
-                $msg = "Each entry of aclEntries must be \stdClass object.";
-                throw new \RuntimeException($msg);
-            }
-            if (!in_array($entry->level, ['write', 'read'])){
-                $msg = "aclEntry level value not supported. It must be one of 'write', 'read'. " . $entry->level . ' is provided.';
-                throw new \RuntimeException($msg);
-            }
-
-            if (!in_array($entry->type, ['user', 'group'])){
-                $msg = "aclEntry type value not supported. It must be one of 'user', 'group'. " . $entry->type . ' is provided.';
-                throw new \RuntimeException($msg);
-            }
-
-            //TODO: check $entry['name']
-
-        }
-    }
 
 }

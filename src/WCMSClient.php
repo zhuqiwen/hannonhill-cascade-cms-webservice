@@ -23,12 +23,23 @@ class WCMSClient
     public function __construct(
         string $wsdl_url,
         string $site_name,
-        array | null $soapRequestOptions = null
+        array | null $soapRequestOptions = null,
+        ?string $username = null,
+        ?string $password = null,
+        ?string $apiKey = null,
     ) {
         $this->site_name = trim($site_name);
         $this->authentication = [];
         $this->createWebServicesClient($wsdl_url, $soapRequestOptions);
         $this->wsdl = $wsdl_url;
+
+        if ($username && $password) {
+            $this->setAuthByUsernamePassword($username, $password);
+        }
+
+        if ($apiKey) {
+            $this->setAuthByKey($apiKey);
+        }
 
         $this->batch = new Batch($this->client, $this->authentication, $this->site_name);
         $this->access = new Access($this->client, $this->authentication, $this->site_name);

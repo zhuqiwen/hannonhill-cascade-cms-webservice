@@ -190,4 +190,14 @@ trait WCMSClientTraits
 
         }
     }
+
+
+    /**
+     * utils
+     */
+
+    protected function is32Hex(string $string): bool
+    {
+        return preg_match('/^[a-f0-9]{32}$/i', $string) === 1;
+    }
 }

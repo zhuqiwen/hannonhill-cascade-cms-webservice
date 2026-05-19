@@ -33,11 +33,11 @@ class WCMSClient
         $this->createWebServicesClient($wsdl_url, $soapRequestOptions);
         $this->wsdl = $wsdl_url;
 
-        if ($username && $password) {
+        if (!$username || !$password) {
             $this->setAuthByUsernamePassword($username, $password);
         }
 
-        if ($apiKey) {
+        if (!$apiKey) {
             $this->setAuthByKey($apiKey);
         }
 

@@ -74,8 +74,7 @@ class Batch extends WCMSClientOperationAbstract {
         foreach ($deletes as $delete){
             $path = $delete['path'];
             $type = $delete['type'];
-            $operations[] = [$this->constructOperationDelete($path, $type)
-            ];
+            $operations[] = $this->constructOperationDelete($path, $type);
         }
 
         return $this->doBatch($this->getBatchOptions($operations));
@@ -93,9 +92,7 @@ class Batch extends WCMSClientOperationAbstract {
             $doWorkflow = $move['doWorkflow'] ?? false;
 
 
-            $operations[] = [
-                $this->constructOperationMove($path, $type, $newParentPath, $doWorkflow)
-            ];
+            $operations[] = $this->constructOperationMove($path, $type, $newParentPath, $doWorkflow);
 
 
         }
@@ -109,9 +106,7 @@ class Batch extends WCMSClientOperationAbstract {
         foreach ($edits as $edit){
             $type = $edit['type'];
             $asset = is_array($edit['asset']) ? $edit['asset'] : (object)$edit['asset'];
-            $operations[] = [
-                $this->constructOperationEdit($type, $asset)
-            ];
+            $operations[] = $this->constructOperationEdit($type, $asset);
         }
 
         return $this->doBatch($this->getBatchOptions($operations));

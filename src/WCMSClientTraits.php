@@ -157,7 +157,7 @@ trait WCMSClientTraits
         }
     }
 
-    private function validateAllLevel(string $allLevel):void
+    protected function validateAllLevel(string $allLevel):void
     {
 
         if (!in_array($allLevel, ['none', 'read', 'write'])){
@@ -169,7 +169,7 @@ trait WCMSClientTraits
 
     }
 
-    private function validateAclEntries(array $aclEntries):void
+    protected function validateAclEntries(array $aclEntries):void
     {
         foreach ($aclEntries as $entry) {
             if (!$entry instanceof \stdClass){

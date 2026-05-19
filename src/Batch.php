@@ -305,7 +305,7 @@ class Batch extends WCMSClientOperationAbstract {
             $msg = '';
 
             if (!isset($entry['type'])){
-                $msg = '$entry is not set';
+                $msg = 'type is not set';
             }
             if (!isset($entry['path'])){
                 $msg = 'path is not set';
@@ -314,7 +314,8 @@ class Batch extends WCMSClientOperationAbstract {
                 $msg = 'newParentPath is not set';
             }
 
-            if (empty($msg)){
+            if (!empty($msg)){
+                $msg .= ' for batch moves data';
                 throw new \RuntimeException($msg);
             }
 

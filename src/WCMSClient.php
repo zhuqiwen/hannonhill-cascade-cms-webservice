@@ -33,18 +33,32 @@ class WCMSClient
         $this->createWebServicesClient($wsdl_url, $soapRequestOptions);
         $this->wsdl = $wsdl_url;
 
-        if (!$username || !$password) {
+        if ($username && $password) {
             $this->setAuthByUsernamePassword($username, $password);
         }
 
-        if (!$apiKey) {
+        if ($apiKey) {
             $this->setAuthByKey($apiKey);
         }
 
+    }
+
+    public function initBatch():void
+    {
+        if (empty($this->authentication)){
+            throw new \RuntimeException('authentication is not set');
+        }
+
         $this->batch = new Batch($this->client, $this->authentication, $this->site_name);
+    }
+
+    public function initAccess():void
+    {
+        if (empty($this->authentication)){
+            throw new \RuntimeException('authentication is not set');
+        }
+
         $this->access = new Access($this->client, $this->authentication, $this->site_name);
-
-
     }
 
 
